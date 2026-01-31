@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: BuildToCloudRun
+
+management:
+    endpoints:
+        web:
+          base-path: /
+
+spring-doc:
+  show-actuator: true
