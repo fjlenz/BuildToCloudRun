@@ -1,4 +1,4 @@
-name: Build and Test and
+name: Mvn Test and Docker build and push to GAR
 
 on:
   push:
