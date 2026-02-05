@@ -66,7 +66,7 @@ public class ChatController {
     public ChatPost createPost(@RequestBody ChatPost post, Principal principal) {
         LOGGER.info("Start creating new chatpost");
 
-        ChatPost mappedChatPost = new ChatPost(UUID.randomUUID(), principal.getName(), LocalDateTime.now(), post.message());
+        ChatPost mappedChatPost = new ChatPost(UUID.randomUUID(), principal.getName(), LocalDateTime.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS), post.message());
         chatMainHolder.add(mappedChatPost);
 
         while (!waitingRequests.isEmpty()) {
