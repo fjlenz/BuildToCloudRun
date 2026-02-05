@@ -27,6 +27,21 @@ public class ChatController {
     private final List<ChatPost> chatMainHolder = new ArrayList<>();
 
     @Operation(
+            summary = "Get existing Chatposts",
+            description = ""
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully received a new message")
+    })
+    @GetMapping("/chatpost")
+    @SecurityRequirement(name = "Authorization")
+    public List<ChatPost> getChatPosts() {
+        LOGGER.info("Start returning current chatposts");
+
+        return chatMainHolder;
+    }
+
+    @Operation(
             summary = "Poll for new messages",
             description = "This is a Long Polling endpoint. The connection stays open until a new message is posted or it times out after 30 seconds."
     )
@@ -34,11 +49,11 @@ public class ChatController {
             @ApiResponse(responseCode = "200", description = "Successfully received a new message"),
             @ApiResponse(responseCode = "503", description = "Request timed out (no message sent during the interval)")
     })
-    @GetMapping("/chatpost")
+    @GetMapping("/chatpostlongpoll")
     @SecurityRequirement(name = "Authorization")
     public DeferredResult<List<ChatPost>> pollForMessages() {
         LOGGER.info("Start polling for new chatposts");
-        DeferredResult<List<ChatPost>> deferredResult = new DeferredResult<>(3000L);
+        DeferredResult<List<ChatPost>> deferredResult = new DeferredResult<>(2000L);
 
         deferredResult.onTimeout(() -> {
             LOGGER.info("Get chatpost is timing out");
@@ -54,6 +69,7 @@ public class ChatController {
         return deferredResult;
     }
 
+
     @Operation(
             summary = "Post a new message",
             description = "Creates a new chat post and immediately broadcasts it to all clients currently waiting on the poll endpoint."
@@ -66,7 +82,8 @@ public class ChatController {
     public ChatPost createPost(@RequestBody ChatPost post, Principal principal) {
         LOGGER.info("Start creating new chatpost");
 
-        ChatPost mappedChatPost = new ChatPost(UUID.randomUUID(), principal.getName(), LocalDateTime.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS), post.message());
+        ChatPost mappedChatPost = new ChatPost(
+                UUID.randomUUID(), principal.getName(), LocalDateTime.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS), post.message());
         chatMainHolder.add(mappedChatPost);
 
         while (!waitingRequests.isEmpty()) {
