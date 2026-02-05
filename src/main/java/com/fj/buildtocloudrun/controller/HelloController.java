@@ -29,6 +29,6 @@ public class HelloController {
     public ResponseEntity<Map<String, String>> getHello(Principal principal) {
         LOGGER.info("Getting a hello call from user: " + principal.getName());
 
-        return ResponseEntity.ok(Map.of("message", "Hello " + principal.getName()));
+        return ResponseEntity.ok(Map.of("message", principal.getName()));
     }
 }

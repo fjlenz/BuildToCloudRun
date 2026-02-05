@@ -38,7 +38,7 @@ public class ChatController {
     @SecurityRequirement(name = "Authorization")
     public DeferredResult<List<ChatPost>> pollForMessages() {
         LOGGER.info("Start polling for new chatposts");
-        DeferredResult<List<ChatPost>> deferredResult = new DeferredResult<>(10000L);
+        DeferredResult<List<ChatPost>> deferredResult = new DeferredResult<>(3000L);
 
         deferredResult.onTimeout(() -> {
             LOGGER.info("Get chatpost is timing out");
