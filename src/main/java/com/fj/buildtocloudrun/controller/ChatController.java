@@ -44,19 +44,7 @@ public class ChatController {
     public List<ChatPost> getChatPosts(Principal principal) {
         LOGGER.info("Start returning current chatposts");
 
-        return mapIsCurrentUser(chatMainHolder, principal);
-    }
-
-    private List<ChatPost> mapIsCurrentUser(List<ChatPost> chatMainHolder, Principal principal) {
-        return chatMainHolder.stream()
-                .map(chatpost -> new ChatPost(
-                        chatpost.id(),
-                        chatpost.from(),
-                        chatpost.timestamp(),
-                        chatpost.from().equals(principal.getName()),
-                        chatpost.message()
-                ))
-                .collect(Collectors.toList());
+        return chatMainHolder;
     }
 
     @Operation(
@@ -75,7 +63,7 @@ public class ChatController {
 
         deferredResult.onTimeout(() -> {
             LOGGER.info("Get chatpost is timing out");
-            deferredResult.setResult(mapIsCurrentUser(chatMainHolder, principal));
+            deferredResult.setResult(chatMainHolder);
 
         });
         deferredResult.onCompletion(() -> {
@@ -100,14 +88,14 @@ public class ChatController {
     public ResponseEntity<Void> createPost(@RequestBody ChatPost post, Principal principal) {
         LOGGER.info("Start creating new chatpost");
 
-        ChatPost mappedChatPost = new ChatPost(UUID.randomUUID(), principal.getName(), LocalDateTime.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS), false, post.message());
+        ChatPost mappedChatPost = new ChatPost(UUID.randomUUID(), principal.getName(), LocalDateTime.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS), post.message());
         chatMainHolder.add(mappedChatPost);
 
         while (!waitingRequests.isEmpty()) {
             LOGGER.info("Iterating through waiting Requests");
             DeferredResult<List<ChatPost>> result = waitingRequests.poll();
             if (result != null) {
-                result.setResult(mapIsCurrentUser(chatMainHolder, principal));
+                result.setResult(chatMainHolder);
             }
         }
         return new ResponseEntity<>(HttpStatus.CREATED);
